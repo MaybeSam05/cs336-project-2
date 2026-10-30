@@ -1,0 +1,100 @@
+CS336 PROJECT 2 -- CANONICAL COVER
+===================================
+
+Data set: 2017 New Jersey HMDA all-records file with labels
+Rows profiled: 349,563
+
+FIRST-NORMAL-FORM TRANSFORMATION
+-------------------------------
+
+The following numbered repeating groups are removed from the application
+relation and represented as rows:
+
+1. applicant_race_1 through applicant_race_5 and their name columns become
+   APPLICATION_APPLICANT_RACE(application_id, race_number, race).
+2. co_applicant_race_1 through co_applicant_race_5 and their name columns
+   become APPLICATION_CO_APPLICANT_RACE(application_id, race_number, race).
+3. denial_reason_1 through denial_reason_3 and their name columns become
+   APPLICATION_DENIAL_REASON(application_id, reason_number, denial_reason).
+
+The common descriptions become RACE(race, race_name) and
+DENIAL_REASON(denial_reason, denial_reason_name). The position attributes are
+retained because they are necessary to reconstruct the original CSV.
+
+CANONICAL COVER USED FOR THE BCNF DECOMPOSITION
+-----------------------------------------------
+
+Each dependency has one attribute on its right side. The left sides were
+checked for extraneous attributes, and no dependency below is implied by the
+others after the 1NF transformation.
+
+{agency_code} -> {agency_name}
+{agency_code} -> {agency_abbr}
+{loan_type} -> {loan_type_name}
+{property_type} -> {property_type_name}
+{loan_purpose} -> {loan_purpose_name}
+{owner_occupancy} -> {owner_occupancy_name}
+{preapproval} -> {preapproval_name}
+{action_taken} -> {action_taken_name}
+{msamd} -> {msamd_name}
+{state_code} -> {state_name}
+{state_code} -> {state_abbr}
+{county_code} -> {county_name}
+{ethnicity} -> {ethnicity_name}
+{race} -> {race_name}
+{sex} -> {sex_name}
+{purchaser_type} -> {purchaser_type_name}
+{denial_reason} -> {denial_reason_name}
+{hoepa_status} -> {hoepa_status_name}
+{lien_status} -> {lien_status_name}
+
+{location_id} -> {county_code}
+{location_id} -> {msamd}
+{location_id} -> {state_code}
+{location_id} -> {census_tract_number}
+{location_id} -> {population}
+{location_id} -> {minority_population}
+{location_id} -> {hud_median_family_income}
+{location_id} -> {tract_to_msamd_income}
+{location_id} -> {number_of_owner_occupied_units}
+{location_id} -> {number_of_1_to_4_family_units}
+
+{county_code, msamd, state_code, census_tract_number, population,
+ minority_population, hud_median_family_income, tract_to_msamd_income,
+ number_of_owner_occupied_units, number_of_1_to_4_family_units}
+    -> {location_id}
+
+{application_id, race_number} -> {race}
+    in APPLICATION_APPLICANT_RACE
+
+{application_id, race_number} -> {race}
+    in APPLICATION_CO_APPLICANT_RACE
+
+{application_id, reason_number} -> {denial_reason}
+    in APPLICATION_DENIAL_REASON
+
+APPLICATION IDENTIFIER
+----------------------
+
+application_id is the Project 1 sequence_number assigned to each source row.
+It determines every non-repeating attribute stored in APPLICATION. This key
+dependency is represented by APPLICATION's primary key rather than repeated
+once for every application attribute above.
+
+SCOPE NOTES
+-----------
+
+1. The accidental facts that every row is from 2017 and New Jersey are not
+   treated as empty-set dependencies. They describe this extract, not the
+   HMDA business rules.
+2. respondent_id -> agency_code was tested and is false in the CSV. Two
+   respondent IDs occur under both agency codes 1 and 3, so no institution
+   table based on that false dependency is created.
+3. All code/name dependencies above were tested over the complete CSV. Each
+   determinant has exactly one corresponding description in the data.
+4. edit_status, edit_status_name, sequence_number in the original CSV, and
+   application_date_indicator are null in every source row. They are emitted
+   as null constants by the report rather than stored in a redundant table.
+5. If a dependency-preserving decomposition had conflicted with BCNF or
+   losslessness, losslessness and full normalization would take priority as
+   required by the assignment. No such conflict is needed in this design.

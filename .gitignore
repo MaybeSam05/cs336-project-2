@@ -1,0 +1,11 @@
+data/*.csv
+data/*.zip
+data/profile.json
+data/profile.txt
+output/
+reconstructed.csv
+tmp/
+__pycache__/
+*.pyc
+*.log
+.DS_Store

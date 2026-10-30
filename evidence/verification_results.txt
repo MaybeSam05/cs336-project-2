@@ -1,0 +1,41 @@
+CS336 PROJECT 2 - LOCAL VERIFICATION RESULTS
+============================================
+
+Test date: October 30, 2026
+Database: PostgreSQL 17.11
+Source: official CFPB hmda_2017_nj_all-records_labels.csv
+
+SOURCE PROFILE
+--------------
+Rows: 349,563
+Columns: 78
+Distinct assignment-defined locations: 2,135
+Applicant race values: 351,510
+Co-applicant race values: 350,201
+Denial reason values: 45,088
+
+NORMALIZATION BUILD
+-------------------
+application: 349,563 rows
+location: 2,135 rows
+application_applicant_race: 351,510 rows
+application_co_applicant_race: 350,201 rows
+application_denial_reason: 45,088 rows
+
+All source-to-normalized count, location mapping, and repeating-group checks
+completed successfully.
+
+CSV ROUND TRIP
+--------------
+Original lines: 349,564 (header plus 349,563 data rows)
+Reconstructed lines: 349,564
+Byte comparison: IDENTICAL
+
+SHA-256, both files:
+8fae1ea53bc4af1bc1db107584cab3ae77e80b24db347f3e6bd549e265cf01b5
+
+REJECTED WRITE TESTS
+--------------------
+PASS: property_type 4 rejected by foreign key.
+PASS: null respondent_id rejected by NOT NULL.
+PASS: applicant race position 6 rejected by CHECK.
