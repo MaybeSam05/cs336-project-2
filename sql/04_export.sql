@@ -81,7 +81,7 @@ SELECT
     COALESCE(l.state_code::TEXT, '') AS state_code,
     COALESCE(c.county_name, '') AS county_name,
     COALESCE(l.county_code::TEXT, '') AS county_code,
-    COALESCE(l.census_tract_number, '') AS census_tract_number,
+    COALESCE(to_char(l.census_tract_number::numeric, 'FM0000.00'), '') AS census_tract_number,
     COALESCE(ae.ethnicity_name, '') AS applicant_ethnicity_name,
     COALESCE(a.applicant_ethnicity::TEXT, '') AS applicant_ethnicity,
     COALESCE(ce.ethnicity_name, '') AS co_applicant_ethnicity_name,
