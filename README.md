@@ -35,7 +35,8 @@ From psql:
 
 `01_preliminary.sql` is the retained Project 1 import. If `Preliminary` already
 exists and is correct, skip it. `02_normalize.sql` recreates only Project 2
-tables and never drops the preliminary table.
+tables and never drops the preliminary table. The included scripts consistently
+use `public.Preliminary`, so the documented run order works from a clean database.
 
 After `04_export.sql`, compare the result from the ordinary Linux shell:
 

@@ -11,7 +11,7 @@ DECLARE
     source_co_applicant_races BIGINT;
     source_denial_reasons BIGINT;
 BEGIN
-    IF (SELECT COUNT(*) FROM application) <> (SELECT COUNT(*) FROM nr809.preliminary) THEN
+    IF (SELECT COUNT(*) FROM application) <> (SELECT COUNT(*) FROM public.Preliminary) THEN
         RAISE EXCEPTION 'Application count differs from Preliminary';
     END IF;
 
@@ -23,7 +23,7 @@ BEGIN
 
     IF EXISTS (
         SELECT 1
-        FROM nr809.preliminary p
+        FROM public.Preliminary p
         LEFT JOIN application a ON a.application_id = p.sequence_number
         WHERE a.application_id IS NULL
     ) THEN
@@ -34,7 +34,7 @@ BEGIN
         SELECT 1
         FROM application a
         JOIN location l ON l.location_id = a.location_id
-        JOIN nr809.preliminary p ON p.sequence_number = a.application_id
+        JOIN public.Preliminary p ON p.sequence_number = a.application_id
         WHERE ROW(
             l.county_code, l.msamd, l.state_code, l.census_tract_number,
             l.population, l.minority_population, l.hud_median_family_income,
@@ -55,20 +55,20 @@ BEGIN
         + COUNT(applicant_race_3) + COUNT(applicant_race_4)
         + COUNT(applicant_race_5)
     INTO source_applicant_races
-    FROM nr809.preliminary;
+    FROM public.Preliminary;
 
     SELECT
         COUNT(co_applicant_race_1) + COUNT(co_applicant_race_2)
         + COUNT(co_applicant_race_3) + COUNT(co_applicant_race_4)
         + COUNT(co_applicant_race_5)
     INTO source_co_applicant_races
-    FROM nr809.preliminary;
+    FROM public.Preliminary;
 
     SELECT
         COUNT(denial_reason_1) + COUNT(denial_reason_2)
         + COUNT(denial_reason_3)
     INTO source_denial_reasons
-    FROM nr809.preliminary;
+    FROM public.Preliminary;
 
     IF source_applicant_races <> (SELECT COUNT(*) FROM application_applicant_race) THEN
         RAISE EXCEPTION 'Applicant race rows were lost or duplicated';
@@ -83,7 +83,7 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM information_schema.columns
-        WHERE table_schema = 'nr809'
+        WHERE table_schema = current_schema()
           AND table_name = 'application'
           AND (column_name LIKE '%name%' OR column_name IN (
               'county_code', 'msamd', 'state_code', 'census_tract_number',
@@ -98,7 +98,7 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM information_schema.columns
-        WHERE table_schema = 'nr809'
+        WHERE table_schema = current_schema()
           AND table_name IN (
               'application', 'application_applicant_race',
               'application_co_applicant_race', 'application_denial_reason'
@@ -112,7 +112,7 @@ $$;
 
 -- Expected: all zero.
 SELECT
-    (SELECT COUNT(*) FROM nr809.preliminary)
+    (SELECT COUNT(*) FROM public.Preliminary)
         - (SELECT COUNT(*) FROM application) AS application_count_difference,
     2135 - (SELECT COUNT(*) FROM location) AS location_count_difference,
     351510 - (SELECT COUNT(*) FROM application_applicant_race)

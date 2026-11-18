@@ -1,5 +1,5 @@
 -- CS336 Project 2: create and populate the normalized HMDA database.
--- Prerequisite: Project 1's nr809.preliminary table with 349,563 rows.
+-- Prerequisite: Project 1's public.Preliminary table with 349,563 rows.
 -- Run in psql with: \i sql/02_normalize.sql
 
 \set ON_ERROR_STOP on
@@ -217,52 +217,52 @@ CREATE TABLE application_denial_reason (
 -- would violate their primary keys and stop the transaction.
 INSERT INTO agency
 SELECT DISTINCT agency_code, agency_name, agency_abbr
-FROM nr809.preliminary;
+FROM public.Preliminary;
 
 INSERT INTO loan_type
-SELECT DISTINCT loan_type, loan_type_name FROM nr809.preliminary;
+SELECT DISTINCT loan_type, loan_type_name FROM public.Preliminary;
 
 INSERT INTO property_type
-SELECT DISTINCT property_type, property_type_name FROM nr809.preliminary;
+SELECT DISTINCT property_type, property_type_name FROM public.Preliminary;
 
 INSERT INTO loan_purpose
-SELECT DISTINCT loan_purpose, loan_purpose_name FROM nr809.preliminary;
+SELECT DISTINCT loan_purpose, loan_purpose_name FROM public.Preliminary;
 
 INSERT INTO owner_occupancy
-SELECT DISTINCT owner_occupancy, owner_occupancy_name FROM nr809.preliminary;
+SELECT DISTINCT owner_occupancy, owner_occupancy_name FROM public.Preliminary;
 
 INSERT INTO preapproval
-SELECT DISTINCT preapproval, preapproval_name FROM nr809.preliminary;
+SELECT DISTINCT preapproval, preapproval_name FROM public.Preliminary;
 
 INSERT INTO action_taken
-SELECT DISTINCT action_taken, action_taken_name FROM nr809.preliminary;
+SELECT DISTINCT action_taken, action_taken_name FROM public.Preliminary;
 
 INSERT INTO msamd
 SELECT DISTINCT msamd, msamd_name
-FROM nr809.preliminary
+FROM public.Preliminary
 WHERE msamd IS NOT NULL;
 
 INSERT INTO state
-SELECT DISTINCT state_code, state_name, state_abbr FROM nr809.preliminary;
+SELECT DISTINCT state_code, state_name, state_abbr FROM public.Preliminary;
 
 INSERT INTO county
 SELECT DISTINCT county_code, county_name
-FROM nr809.preliminary
+FROM public.Preliminary
 WHERE county_code IS NOT NULL;
 
 INSERT INTO ethnicity
-SELECT applicant_ethnicity, applicant_ethnicity_name FROM nr809.preliminary
+SELECT applicant_ethnicity, applicant_ethnicity_name FROM public.Preliminary
 UNION
-SELECT co_applicant_ethnicity, co_applicant_ethnicity_name FROM nr809.preliminary;
+SELECT co_applicant_ethnicity, co_applicant_ethnicity_name FROM public.Preliminary;
 
 INSERT INTO sex
-SELECT applicant_sex, applicant_sex_name FROM nr809.preliminary
+SELECT applicant_sex, applicant_sex_name FROM public.Preliminary
 UNION
-SELECT co_applicant_sex, co_applicant_sex_name FROM nr809.preliminary;
+SELECT co_applicant_sex, co_applicant_sex_name FROM public.Preliminary;
 
 INSERT INTO race
 SELECT race_code, race_name
-FROM nr809.preliminary p
+FROM public.Preliminary p
 CROSS JOIN LATERAL (
     VALUES
         (p.applicant_race_1, p.applicant_race_name_1),
@@ -280,11 +280,11 @@ WHERE race_code IS NOT NULL
 GROUP BY race_code, race_name;
 
 INSERT INTO purchaser_type
-SELECT DISTINCT purchaser_type, purchaser_type_name FROM nr809.preliminary;
+SELECT DISTINCT purchaser_type, purchaser_type_name FROM public.Preliminary;
 
 INSERT INTO denial_reason
 SELECT reason_code, reason_name
-FROM nr809.preliminary p
+FROM public.Preliminary p
 CROSS JOIN LATERAL (
     VALUES
         (p.denial_reason_1, p.denial_reason_name_1),
@@ -295,10 +295,10 @@ WHERE reason_code IS NOT NULL
 GROUP BY reason_code, reason_name;
 
 INSERT INTO hoepa_status
-SELECT DISTINCT hoepa_status, hoepa_status_name FROM nr809.preliminary;
+SELECT DISTINCT hoepa_status, hoepa_status_name FROM public.Preliminary;
 
 INSERT INTO lien_status
-SELECT DISTINCT lien_status, lien_status_name FROM nr809.preliminary;
+SELECT DISTINCT lien_status, lien_status_name FROM public.Preliminary;
 
 -- Assign one stable integer to each distinct ten-attribute location tuple.
 INSERT INTO location (
@@ -310,7 +310,7 @@ SELECT DISTINCT
     county_code, msamd, state_code, census_tract_number::text AS census_tract_number, population,
     minority_population, hud_median_family_income, tract_to_msamd_income,
     number_of_owner_occupied_units, number_of_1_to_4_family_units
-FROM nr809.preliminary
+FROM public.Preliminary
 ORDER BY
     county_code NULLS FIRST,
     msamd NULLS FIRST,
@@ -355,7 +355,7 @@ SELECT
     p.rate_spread,
     p.hoepa_status,
     p.lien_status
-FROM nr809.preliminary p
+FROM public.Preliminary p
 JOIN location l ON
     COALESCE(l.county_code, -1) = COALESCE(p.county_code, -1)
     AND COALESCE(l.msamd, -1) = COALESCE(p.msamd, -1)
@@ -370,7 +370,7 @@ JOIN location l ON
 
 INSERT INTO application_applicant_race (application_id, race_number, race)
 SELECT p.sequence_number, values_from_source.race_number, values_from_source.race
-FROM nr809.preliminary p
+FROM public.Preliminary p
 CROSS JOIN LATERAL (
     VALUES
         (1, p.applicant_race_1),
@@ -383,7 +383,7 @@ WHERE values_from_source.race IS NOT NULL;
 
 INSERT INTO application_co_applicant_race (application_id, race_number, race)
 SELECT p.sequence_number, values_from_source.race_number, values_from_source.race
-FROM nr809.preliminary p
+FROM public.Preliminary p
 CROSS JOIN LATERAL (
     VALUES
         (1, p.co_applicant_race_1),
@@ -396,7 +396,7 @@ WHERE values_from_source.race IS NOT NULL;
 
 INSERT INTO application_denial_reason (application_id, reason_number, denial_reason)
 SELECT p.sequence_number, values_from_source.reason_number, values_from_source.denial_reason
-FROM nr809.preliminary p
+FROM public.Preliminary p
 CROSS JOIN LATERAL (
     VALUES
         (1, p.denial_reason_1),
@@ -408,7 +408,7 @@ WHERE values_from_source.denial_reason IS NOT NULL;
 -- Source-specific invariants. A failure rolls back the complete build.
 DO $$
 BEGIN
-    IF (SELECT COUNT(*) FROM nr809.preliminary) <> 349563 THEN
+    IF (SELECT COUNT(*) FROM public.Preliminary) <> 349563 THEN
         RAISE EXCEPTION 'Expected 349563 Preliminary rows';
     END IF;
     IF (SELECT COUNT(*) FROM application) <> 349563 THEN
